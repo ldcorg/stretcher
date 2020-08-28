@@ -1,4 +1,6 @@
 # Stretcher
+[![Build Status](https://travis-ci.org/ldcorg/stretcher.svg?branch=master)](https://travis-ci.org/ldcorg/stretcher)
+[![Coverage Status](https://coveralls.io/repos/github/ldcorg/stretcher/badge.svg?branch=master)](https://coveralls.io/github/ldcorg/stretcher?branch=master)
 
 Tested against: Elasticsearch 7.8
 
