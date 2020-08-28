@@ -29,7 +29,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency('multi_json', '>= 1.15.0')
 
   gem.add_development_dependency 'rspec', '>= 3.9'
-  gem.add_development_dependency 'coveralls'
+  gem.add_development_dependency 'coveralls', '>= 0.8.23'
   gem.add_development_dependency 'simplecov'
   gem.add_development_dependency 'vcr'
   gem.add_development_dependency 'rake'
