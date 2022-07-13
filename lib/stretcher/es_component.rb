@@ -33,7 +33,7 @@ module Stretcher
 
     def do_delete_query(query, params = {})
       request :post, '_delete_by_query', params do |req|
-        req.body = {query: query}
+        req.body = { query: query }
       end
     end
 

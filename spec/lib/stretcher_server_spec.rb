@@ -17,7 +17,7 @@ describe Stretcher::Server do
     server = Stretcher::Server.new(ES_URL, log_level: :info)
     server.logger.level.should == Logger::INFO
   end
-  
+
   it 'sets timeouts from options' do
     server = Stretcher::Server.new(ES_URL, read_timeout: 5, open_timeout: 2)
     server.http.options[:timeout].should == 5
@@ -26,7 +26,7 @@ describe Stretcher::Server do
 
   it "should support the block friendly 'with_server'" do
     exposed = nil
-    res = Stretcher::Server.with_server() {|s|
+    res = Stretcher::Server.with_server() { |s|
       exposed = s
       :retval
     }
@@ -38,11 +38,11 @@ describe Stretcher::Server do
     # This spec could work better, but it's hard to reach into the
     # guts of faraday
     conf_called = false
-    configurator = lambda {|builder|
+    configurator = lambda { |builder|
       builder.adapter :net_http
       conf_called = true
     }
-    srv = Stretcher::Server.new(ES_URL, {faraday_configurator: configurator})
+    srv = Stretcher::Server.new(ES_URL, { faraday_configurator: configurator })
     conf_called.should eql true
   end
 
@@ -57,7 +57,7 @@ describe Stretcher::Server do
   it "should perform alias operations properly" do
     server.index(:foo).delete if server.index(:foo).exists?
     server.index(:foo).create
-    server.aliases(actions: [{add: {index: :foo, alias: :foo_alias}}])
+    server.aliases(actions: [{ add: { index: :foo, alias: :foo_alias } }])
 
     server.index(:foo_alias).get_settings.should == server.index(:foo).get_settings
 
@@ -78,7 +78,7 @@ describe Stretcher::Server do
 
   it "should support block syntax for indexes" do
     exposed = nil
-    res = server.index(:foo) {|i|
+    res = server.index(:foo) { |i|
       exposed = i
       :retval
     }
@@ -146,8 +146,8 @@ describe Stretcher::Server do
     end
 
     it "should return a hash of the aliases if at least one exists" do
-      server.aliases(actions: [{ add: { index: "foo", alias: "bar" }}])
-      expect(server.get_alias("bar")).to eq({"foo" => {"aliases" => {"bar" => {}}}})
+      server.aliases(actions: [{ add: { index: "foo", alias: "bar" } }])
+      expect(server.get_alias("bar")).to eq({ "foo" => { "aliases" => { "bar" => {} } } })
     end
   end
 

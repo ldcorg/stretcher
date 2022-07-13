@@ -17,7 +17,7 @@ describe Stretcher::Server do
     t1 = Thread.new {
       server.index(:foots).delete if server.index(:foots).exists?
       server.index(:foots).create
-      server.aliases(actions: [{add: {index: :foots, alias: :foots_alias}}])
+      server.aliases(actions: [{ add: { index: :foots, alias: :foots_alias } }])
 
       server.index(:foots_alias).get_settings.should == server.index(:foots).get_settings
 
@@ -26,7 +26,7 @@ describe Stretcher::Server do
     t2 = Thread.new {
       server.index(:foots2).delete if server.index(:foots2).exists?
       server.index(:foots2).create
-      server.aliases(actions: [{add: {index: :foots2, alias: :foots_alias2}}])
+      server.aliases(actions: [{ add: { index: :foots2, alias: :foots_alias2 } }])
 
       server.index(:foots_alias2).get_settings.should == server.index(:foots2).get_settings
 
@@ -53,16 +53,15 @@ describe Stretcher::Server do
 
     server.index(:foots).delete if server.index(:foots).exists?
     server.index(:foots).create
-    server.aliases(actions: [{add: {index: :foots, alias: :foots_alias}}])
+    server.aliases(actions: [{ add: { index: :foots, alias: :foots_alias } }])
 
     server.index(:foots_alias).get_settings.should == server.index(:foots).get_settings
 
     server.aliases[:foots][:aliases].keys.should include 'foots_alias'
 
-
     server.index(:foots2).delete if server.index(:foots2).exists?
     server.index(:foots2).create
-    server.aliases(actions: [{add: {index: :foots2, alias: :foots_alias2}}])
+    server.aliases(actions: [{ add: { index: :foots2, alias: :foots_alias2 } }])
 
     server.index(:foots_alias2).get_settings.should == server.index(:foots2).get_settings
 
