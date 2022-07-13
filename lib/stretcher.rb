@@ -1,10 +1,8 @@
 require 'thread'
 require 'logger'
 require 'hashie'
-require 'excon'
-require 'multi_json'
+require 'oj'
 require 'faraday'
-require 'faraday_middleware'
 require "stretcher/version"
 require 'stretcher/request_error'
 require 'stretcher/search_results'
@@ -18,4 +16,5 @@ require 'stretcher/util'
 require 'stretcher/smash'
 
 module Stretcher
+  Oj.default_options = { :mode => :compat }
 end

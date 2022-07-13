@@ -4,7 +4,7 @@ describe Stretcher::IndexDocs do
   let(:server) { Stretcher::Server.new(ES_URL, logger: DEBUG_LOGGER) }
   let(:index) { ensure_test_index(server, :foo) }
   let(:mapping) do
-    {"properties" => {"message" => {"type" => "text"}}}
+    { "properties" => { "message" => { "type" => "text" } } }
   end
   let(:docs) { index.docs }
 
@@ -14,51 +14,51 @@ describe Stretcher::IndexDocs do
     index.refresh
     index.put_mapping({
                         "properties" => {
-                          "message" => {"type" => "text", analyzer: "snowball", "store": true},
-                          "username" => {"type" => "text"}
-                        }})
+                          "message" => { "type" => "text", analyzer: "snowball", "store": true },
+                          "username" => { "type" => "text" }
+                        } })
   end
 
   it "should be existentially aware" do
     docs = index.docs
     docs.exists?(1).should eq false
-    d = docs.put(1, {message: 'test'})
+    d = docs.put(1, { message: 'test' })
     docs.exists?(d['_id']).should eq true
   end
 
   describe "searching" do
     before do
-      @doc = {message: "hello"}
+      @doc = { message: "hello" }
 
       docs.put(123123, @doc)
       index.refresh
     end
 
     it "should search and find the right doc" do
-      res = docs.search(query: {match: {message: @doc[:message]}})
+      res = docs.search(query: { match: { message: @doc[:message] } })
       res.results.first.message.should == @doc[:message]
     end
 
     it "should build results when _source is not included in loaded fields" do
-      res = docs.search(query: {match_all: {}}, stored_fields: ['message'])
+      res = docs.search(query: { match_all: {} }, stored_fields: ['message'])
       res.results.first.message.should == [@doc[:message]]
     end
 
     it "should build results when no document fields are selected" do
-      res = docs.search(query: {match_all: {}}, stored_fields: ['_id'])
+      res = docs.search(query: { match_all: {} }, stored_fields: ['_id'])
       res.results.first.should have_key '_id'
     end
 
     it "should add _highlight field to resulting documents when present" do
-      res = docs.search(query: {match: {message: 'hello'}}, highlight: {fields: {message: {}}})
+      res = docs.search(query: { match: { message: 'hello' } }, highlight: { fields: { message: {} } })
       res.documents.first.message.should == @doc[:message]
       res.documents.first.should have_key '_highlight'
     end
   end
 
   describe 'mget' do
-    let(:doc_one) { {message: "message one!"} }
-    let(:doc_two) { {message: "message two!"} }
+    let(:doc_one) { { message: "message one!" } }
+    let(:doc_two) { { message: "message two!" } }
 
     before do
       docs.put(988, doc_one)
@@ -80,8 +80,8 @@ describe Stretcher::IndexDocs do
 
   describe "ops on individual docs" do
     before(:each) do
-      @doc = {message: "hello!"}
-      @put_res = docs.put(987, @doc, {refresh: :wait_for})
+      @doc = { message: "hello!" }
+      @put_res = docs.put(987, @doc, { refresh: :wait_for })
     end
 
     describe "put" do
@@ -109,17 +109,17 @@ describe Stretcher::IndexDocs do
       end
 
       it "should get individual fields given a String, passing through additional options" do
-        res = docs.get(987, {stored_fields: 'message'})
+        res = docs.get(987, { stored_fields: 'message' })
         res.message.first.should == @doc[:message]
       end
 
       it "should get individual fields given an Array, passing through additional options" do
-        res = docs.get(987, {stored_fields: ['message']})
+        res = docs.get(987, { stored_fields: ['message'] })
         res.message.first.should == @doc[:message]
       end
 
       it "should have source and other fields accessible when raw=true" do
-        res = docs.get(987, {stored_fields: ['message', '_source']}, true)
+        res = docs.get(987, { stored_fields: ['message', '_source'] }, true)
         res._source.message == @doc[:message]
         res.fields.message.first.should == @doc[:message]
       end
@@ -141,13 +141,13 @@ describe Stretcher::IndexDocs do
       it "should explain a query" do
         docs.exists?(987).should eq(true)
         index.refresh
-        res = docs.explain(987, {query: {match_all: {}}})
+        res = docs.explain(987, { query: { match_all: {} } })
         res.should have_key('explanation')
       end
 
       it 'should allow options to be passed through' do
         index.refresh
-        docs.explain(987, {query: {match_all: {}}}, {stored_fields: 'message'}).get.fields.message.should == ['hello!']
+        docs.explain(987, { query: { match_all: {} } }, { stored_fields: 'message' }).get.fields.message.should == ['hello!']
       end
     end
 
@@ -159,17 +159,17 @@ describe Stretcher::IndexDocs do
     end
 
     it "should update individual docs correctly using doc" do
-      docs.update(987, doc: {message: 'Updated!'})
+      docs.update(987, doc: { message: 'Updated!' })
       docs.get(987).message.should == 'Updated!'
     end
 
     it "should update individual docs correctly using doc and fields" do
-      response = docs.update(987, {doc: {message: 'Updated!'}}, _source_includes: ['message'])
+      response = docs.update(987, { doc: { message: 'Updated!' } }, _source_includes: ['message'])
       response.get._source.message.should == 'Updated!'
     end
 
     it "should delete by query correctly" do
-      res = docs.delete_query({match_all: {}}, refresh: true)
+      res = docs.delete_query({ match_all: {} }, refresh: true)
       index.refresh
       docs.exists?(987).should == false
     end
@@ -182,7 +182,7 @@ describe Stretcher::IndexDocs do
 
     it "should allow params to be passed to delete" do
       es_doc = docs.get(987, {}, true)
-      lambda { docs.delete(987, if_primary_term: es_doc['_primary_term'], if_seq_no: es_doc['_seq_no'] + 1) }.should raise_exception
+      lambda { docs.delete(987, if_primary_term: es_doc['_primary_term'], if_seq_no: es_doc['_seq_no'] + 1) }.should raise_exception(Stretcher::RequestError)
       docs.delete(987, if_primary_term: es_doc['_primary_term'], if_seq_no: es_doc['_seq_no'])
       docs.exists?(987).should == false
     end

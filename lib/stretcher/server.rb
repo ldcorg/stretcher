@@ -7,7 +7,6 @@ module Stretcher
     def self.build_client(uri_components, options = {})
       http = Faraday.new(url: uri_components) do |builder|
         builder.response :json, content_type: /\bjson$/
-
         builder.request :json
 
         builder.options[:timeout] = options[:read_timeout] || 30
@@ -15,8 +14,6 @@ module Stretcher
 
         if faraday_configurator = options[:faraday_configurator]
           faraday_configurator.call(builder)
-        else
-          builder.adapter :excon
         end
       end
       http.headers = {
@@ -141,7 +138,7 @@ module Stretcher
     #    server.msearch(data)
     def msearch(body = [])
       raise ArgumentError, "msearch takes an array!" unless body.is_a?(Array)
-      fmt_body = body.map { |l| MultiJson.dump(l) }.join("\n") << "\n"
+      fmt_body = body.map { |l| Oj.dump(l) }.join("\n") << "\n"
 
       res = request(:get, path_uri("/_msearch"), {}, fmt_body, {}, mashify: false)
 
@@ -162,9 +159,9 @@ module Stretcher
       #Legacy API
       return legacy_mget(docs) if docs.is_a?(Hash)
 
-      opts = {exists: true}.merge(arg_opts)
+      opts = { exists: true }.merge(arg_opts)
 
-      res = request(:get, path_uri("/_mget"), {}, {docs: docs})[:docs]
+      res = request(:get, path_uri("/_mget"), {}, { docs: docs })[:docs]
       if opts.has_key?(:exists) || opts.has_key?(:found)
         res.select { |d| d[:found] == true }
       else
@@ -184,7 +181,7 @@ module Stretcher
     # as per: http://www.elasticsearch.org/guide/reference/api/admin-indices-analyze.html
     def analyze(text, analysis_params)
       request(:get, path_uri("/_analyze")) do |req|
-        req.body = {text: text}.merge(analysis_params)
+        req.body = { text: text }.merge(analysis_params)
       end
     end
 
@@ -217,7 +214,7 @@ module Stretcher
     # Handy way to query the server, returning *only* the body
     # Will raise an exception when the status is not in the 2xx range
     def request(method, path, params = {}, body = nil, headers = {}, options = {}, &block)
-      options = {mashify: true}.merge(options)
+      options = { mashify: true }.merge(options)
       req = http.build_request(method)
       req.path = path
       req.params.update(Util.clean_params(params)) if params
@@ -240,7 +237,6 @@ module Stretcher
     end
 
     private
-
 
     # Internal use only
     # Check response codes from request

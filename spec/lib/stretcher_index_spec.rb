@@ -7,22 +7,22 @@ describe Stretcher::Index do
   let(:index) { ensure_test_index(server, :foo, mappings) }
   let(:mappings) do
     {
-        mappings: {
-            properties: {
-                username: {type: :text},
-                age: {type: :integer},
-                text: {type: :text},
-                _text: {type: :text}
-            }
+      mappings: {
+        properties: {
+          username: { type: :text },
+          age: { type: :integer },
+          text: { type: :text },
+          _text: { type: :text }
         }
+      }
     }
   end
   let(:corpus) {
     # underscore field that are not system fields should make it through to _source
     [
-        {'username' => "john", 'age' => 25, 'text' => "Foo", '_text' => '_Foo', '_id' => 'fooid'},
-        {'username' => "jacob", 'age' => 32, 'text' => "Bar", '_text' => '_Bar', '_id' => 'barid'},
-        {'username' => "jingleheimer", 'age' => 54, 'text' => "Baz", '_text' => '_Baz', 'id' => 'bazid'} # Note we support both _id and id
+      { 'username' => "john", 'age' => 25, 'text' => "Foo", '_text' => '_Foo', '_id' => 'fooid' },
+      { 'username' => "jacob", 'age' => 32, 'text' => "Bar", '_text' => '_Bar', '_id' => 'barid' },
+      { 'username' => "jingleheimer", 'age' => 54, 'text' => "Baz", '_text' => '_Baz', 'id' => 'bazid' } # Note we support both _id and id
     ]
   }
 
@@ -39,7 +39,7 @@ describe Stretcher::Index do
   it 'creates an index with the correct HTTP command' do
     index.delete rescue nil
 
-    expected = %{curl -XPUT 'http://localhost:9200/foo' -d '#{JSON.dump(mappings)}' '-H Accept: application/json' '-H Content-Type: application/json' '-H User-Agent: Stretcher Ruby Gem #{Stretcher::VERSION}'}
+    expected = %{curl -XPUT 'http://localhost:9200/foo' -d '#{Oj.dump(mappings)}' '-H Accept: application/json' '-H Content-Type: application/json' '-H User-Agent: Stretcher Ruby Gem #{Stretcher::VERSION}'}
 
     server.logger.should_receive(:debug) do |&block|
       block.call.should == expected
@@ -69,7 +69,7 @@ describe Stretcher::Index do
     seed_corpus
     user = corpus.first
     user_id = user['_id'] || user['id']
-    res = index.mget([{_index: index.name, _id: user_id}])
+    res = index.mget([{ _index: index.name, _id: user_id }])
 
     expect(res.length).to eql(1)
     expect(res[0]['_id']).to eql user_id
@@ -112,8 +112,8 @@ describe Stretcher::Index do
     it "should bulk delete documents" do
       seed_corpus
       docs_meta = [
-          {"_index" => index.name, "_id" => 'fooid'},
-          {"_index" => index.name, "_id" => 'barid'}
+        { "_index" => index.name, "_id" => 'fooid' },
+        { "_index" => index.name, "_id" => 'barid' }
       ]
       index.mget(docs_meta).length.should == 2
       index.bulk_delete(docs_meta)
@@ -124,13 +124,13 @@ describe Stretcher::Index do
     it 'allows _routing to be set on bulk index documents' do
       server.index(:with_routing).delete if server.index(:with_routing).exists?
       server.index(:with_routing).create({
-                                             settings: {
-                                                 number_of_shards: 1,
-                                                 number_of_replicas: 0
-                                             },
-                                             mappings: {
-                                                 _routing: {required: true}
-                                             }
+                                           settings: {
+                                             number_of_shards: 1,
+                                             number_of_replicas: 0
+                                           },
+                                           mappings: {
+                                             _routing: { required: true }
+                                           }
                                          })
 
       server.index(:with_routing).bulk_index(corpus)
@@ -150,29 +150,29 @@ describe Stretcher::Index do
   describe "suggestion" do
     it "should correctly format the suggest request" do
       expected = {
-          "sug-alias" => {
-              text: "prefix",
-              completion: {field: "sug-field"}}}
+        "sug-alias" => {
+          text: "prefix",
+          completion: { field: "sug-field" } } }
       index.
-          should_receive(:request).
-          with(:post, "_suggest", nil, expected).once.and_return(:result)
+        should_receive(:request).
+        with(:post, "_suggest", nil, expected).once.and_return(:result)
       index.suggest("sug-alias", "prefix", field: "sug-field").should == :result
     end
   end
 
   it "should delete by query" do
     seed_corpus
-    index.search(query: {match_all: {}}).total == 3
+    index.search(query: { match_all: {} }).total == 3
     index.delete_query(match_all: {})
     index.refresh
-    index.search(query: {match_all: {}}).total == 0
+    index.search(query: { match_all: {} }).total == 0
   end
 
   it "should search without error" do
     seed_corpus
     match_text = corpus.first['text']
     index.refresh
-    res = index.search({}, {query: {match: {text: match_text}}})
+    res = index.search({}, { query: { match: { text: match_text } } })
     res.results.first.text.should == match_text
   end
 
@@ -182,8 +182,8 @@ describe Stretcher::Index do
       seed_corpus
       q2_text = corpus.first['text']
       queries = [
-          {query: {match_all: {}}},
-          {query: {match: {text: q2_text}}}
+        { query: { match_all: {} } },
+        { query: { match: { text: q2_text } } }
       ]
       index.msearch(queries)
     }
@@ -201,8 +201,8 @@ describe Stretcher::Index do
 
     it "should raise an error if any query is bad" do
       queries = [
-          {query: {match_all: {}}},
-          {query: {invalid_query: {}}}
+        { query: { match_all: {} } },
+        { query: { invalid_query: {} } }
       ]
       expect {
         index.msearch(queries)
@@ -217,7 +217,7 @@ describe Stretcher::Index do
 
   it "should raise an exception when msearching a non-existant index" do
     lambda {
-      res = server.index(:does_not_exist).msearch([{query: {match_all: {}}}])
+      res = server.index(:does_not_exist).msearch([{ query: { match_all: {} } }])
     }.should raise_exception(Stretcher::RequestError)
   end
 
@@ -245,7 +245,7 @@ describe Stretcher::Index do
 
     context "with options" do
       it "calls request for the correct endpoint with options passed" do
-        expect(index.server).to receive(:request).with(:post, request_url, {"max_num_segments" => 1}, nil, {}, {})
+        expect(index.server).to receive(:request).with(:post, request_url, { "max_num_segments" => 1 }, nil, {}, {})
         index.forcemerge("max_num_segments" => 1)
       end
 
