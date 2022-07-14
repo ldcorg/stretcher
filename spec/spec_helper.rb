@@ -16,6 +16,10 @@ RSpec.configure do |config|
   config.expect_with(:rspec) { |c| c.syntax = [:should, :expect] }
 end
 
+def indig(*args, **kwargs)
+  Stretcher::EsComponent.indig(*args, **kwargs)
+end
+
 def ensure_test_index(server, name, mappings = nil)
   i = server.index(name)
   begin
@@ -44,8 +48,8 @@ def ensure_test_index(server, name, mappings = nil)
 
   # Sometimes the index isn't instantly available
   loop do
-    idx_metadata = server.cluster.state.dig('metadata', 'indices', i.name.to_s)
-    i_state = idx_metadata['state']
+    idx_metadata = indig(server.cluster.state, 'metadata', 'indices', i.name.to_s)
+    i_state = indig(idx_metadata, 'state')
 
     break if i_state == 'open'
 

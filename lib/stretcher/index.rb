@@ -48,13 +48,13 @@ module Stretcher
       bulk_action(:delete, documents, options)
     end
 
-    @@bulk_action_system_fields = [:_type, :_parent, :_routing].freeze
+    @@bulk_action_system_fields = [:_id, :_index, :_type, :_parent, :_routing].freeze
 
     def bulk_action(action, documents, options = {})
       action = action.to_sym
 
       body = documents.reduce("") { |post_data, d_raw|
-        d = d_raw.transform_keys(&:to_sym)
+        d = deep_transform_keys(d_raw)
         index_meta = {
           _id: (d[:id] || d.delete(:_id)),
           _index: (d[:index] || d.delete(:_index))
@@ -87,7 +87,7 @@ module Stretcher
     # And issues an mget for them within the current index
     def mget(meta_docs)
       merge_data = { _index: name }
-      @server.mget(meta_docs.map { |d| d.transform_keys(&:to_sym).merge(merge_data) })
+      @server.mget(meta_docs.map { |d| deep_transform_keys(d).merge(merge_data) })
     end
 
     # Retrieves stats for this index

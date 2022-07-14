@@ -25,7 +25,7 @@ module Stretcher
       end
 
       res = request(:get, "_doc/#{id}", params)
-      raw ? res : (res["_source"] || res["fields"])
+      raw ? res : indig(res, '_source') || indig(res, 'fields')
     end
 
     # Retrieves multiple documents of the index type by ID

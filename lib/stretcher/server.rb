@@ -143,13 +143,14 @@ module Stretcher
       fmt_body = body.map { |l| Oj.dump(l) }.join("\n") << "\n"
 
       res = request(:get, path_uri("/_msearch"), {}, fmt_body, {})
+      responses = indig(res, 'responses')
 
-      errors = res['responses'].map { |response| response['error'] }.compact
+      errors = responses.map { |response| indig(response, 'error') }.compact
       unless errors.empty?
         raise RequestError.new(res), "Could not msearch #{errors.inspect}"
       end
 
-      res['responses'].map { |r| SearchResults.new(r) }
+      responses.map { |r| SearchResults.new(r) }
     end
 
     # Retrieves multiple documents, possibly from multiple indexes
@@ -163,11 +164,12 @@ module Stretcher
 
       opts = { exists: true }.merge(arg_opts)
 
-      res = request(:get, path_uri("/_mget"), {}, { docs: docs })['docs']
+      res = request(:get, path_uri("/_mget"), {}, { docs: docs })
+      docs = indig(res, 'docs')
       if opts.has_key?(:exists) || opts.has_key?(:found)
-        res.select { |d| d['found'] == true }
+        docs.select { |d| indig(d, 'found') == true }
       else
-        res
+        docs
       end
     end
 

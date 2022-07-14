@@ -25,13 +25,13 @@ module Stretcher
 
     # Returns the total number of results
     def total
-      @total ||= raw.dig('hits', 'total')
+      @total ||= EsComponent.indig(raw, 'hits', 'total')
     end
 
     # Returns the facet data from elasticsearch
     # Equivalent to raw['facets']
     def facets
-      @facets ||= raw['facets']
+      @facets ||= EsComponent.indig(raw, 'facets')
     end
 
     # Returns a 'prettier' version of elasticsearch results
@@ -44,7 +44,7 @@ module Stretcher
     #
     def documents
       # This function and its helpers are side-effecty for speed
-      @documents ||= raw.dig('hits', 'hits').map do |hit|
+      @documents ||= (EsComponent.indig(raw, 'hits', 'hits')).map do |hit|
         doc = extract_source(hit)
         copy_underscores(hit, doc)
         copy_highlight(hit, doc)
@@ -66,8 +66,12 @@ module Stretcher
       # Memoize the key, since it will be uniform across results
       @doc_key ||= if hit.key?('_source')
                      '_source'
+                   elsif hit.key?(:_source)
+                     :_source
                    elsif hit.key?('fields')
                      'fields'
+                   elsif hit.key?(:fields)
+                     :fields
                    else
                      nil
                    end
@@ -78,7 +82,7 @@ module Stretcher
     def copy_underscores(hit, doc)
       # Copy underscore keys into the document
       hit.each do |k, v|
-        doc[k] = v if k && k[0] == "_"
+        doc[k] = v if k && k[0] == '_'
       end
 
       doc
@@ -87,6 +91,8 @@ module Stretcher
     def copy_highlight(hit, doc)
       if highlight = hit['highlight']
         doc['_highlight'] = highlight
+      elsif highlight = hit[:highlight]
+        doc[:_highlight] = highlight
       end
       doc
     end
