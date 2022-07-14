@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'faraday/net_http'
 
 describe Stretcher::Index do
   let(:server) {

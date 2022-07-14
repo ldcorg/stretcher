@@ -14,6 +14,8 @@ module Stretcher
 
         if faraday_configurator = options[:faraday_configurator]
           faraday_configurator.call(builder)
+        else
+          builder.adapter :excon
         end
       end
       http.headers = {

@@ -3,6 +3,7 @@ require 'logger'
 require 'hashie'
 require 'oj'
 require 'faraday'
+require 'faraday/excon'
 require "stretcher/version"
 require 'stretcher/request_error'
 require 'stretcher/search_results'

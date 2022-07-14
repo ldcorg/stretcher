@@ -18,9 +18,10 @@ Gem::Specification.new do |gem|
   gem.test_files = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
 
-  gem.add_dependency('faraday', '>= 2.0')
-  gem.add_dependency('hashie', '>= 4.1.0')
-  gem.add_dependency('oj', '>= 3.0')
+  gem.add_dependency('faraday', '>=1.10.0', '<=2.0')
+  gem.add_dependency('faraday-excon')
+  gem.add_dependency('hashie', '>=4.1.0')
+  gem.add_dependency('oj', '>=3.0')
 
   gem.add_development_dependency 'rspec', '>= 3.9'
   gem.add_development_dependency 'coveralls', '>= 0.8.23'
@@ -29,4 +30,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'its'
   gem.add_development_dependency 'pry'
+  gem.add_development_dependency 'faraday-net_http'
 end
