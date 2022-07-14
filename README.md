@@ -1,27 +1,8 @@
 # Stretcher
 
-[![Build Status](https://travis-ci.org/ldcorg/stretcher.svg?branch=master)](https://travis-ci.org/ldcorg/stretcher)
-[![Coverage Status](https://coveralls.io/repos/github/ldcorg/stretcher/badge.svg?branch=master)](https://coveralls.io/github/ldcorg/stretcher?branch=master)
-
-Tested against: Elasticsearch 7.8
-
 A concise, fast ElasticSearch Ruby client designed to reflect the actual elastic search API as closely as possible.
-Elastic search's API is complex, and mostly documented on the Elastic Search Guide. This client tries to stay out of
-your way more than others making advanced techniques easier to implement, and making debugging Elastic Search's
-sometimes cryptic errors easier. Stretcher is currently in production use by Pose, Get Satisfaction, Reverb, and many
-others.
 
-# Features
-
-* Cleanly matches up to elastic search's JSON api
-* Supports efficient bulk indexing operations
-* Returns most responses in convenient Hashie::Mash form
-* Configurable logging
-* Logs curl commandline statements in debug mode
-* Pure, threadsafe, ruby
-* Easily swap HTTP clients and middleware via Faraday
-* Tested against Ruby 3.1.0 and Elasticsearch 7.17.4
-* [Semantically versioned](http://semver.org/)
+Tested against: Elasticsearch 7.17.4, Ruby 3.1.0
 
 ## Installation
 
@@ -115,8 +96,6 @@ Running the specs requires an operational Elastic Search server on http://localh
 The test suite is not to be trusted, don't count on your indexes staying around!
 
 Specs may be run with `rake spec`
-
-Email or tweet @andrewvc if you'd like to be added to this list!
 
 ## Contributors
 
