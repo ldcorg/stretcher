@@ -139,8 +139,8 @@ module Stretcher
     #    es.class   # Stretcher::SearchResults
     #    res.total   # => 1
     #    res.facets  # => nil
-    #    res.results # => [#<Hashie::Mash _id="123" text="Hello">]
-    #    res.raw     # => #<Hashie::Mash ...> Raw JSON from the search
+    #    res.results # => [#<Hash _id="123" text="Hello">]
+    #    res.raw     # => #<Hash ...> Raw JSON from the search
     def search(generic_opts = {}, explicit_body = nil)
       # Written this way to be more RDoc friendly
       do_search(generic_opts, explicit_body)
@@ -166,7 +166,7 @@ module Stretcher
     # Implements the Analyze API
     # EX:
     #    index.analyze("Candles", analyzer: :snowball)
-    #    # => #<Hashie::Mash tokens=[#<Hashie::Mash end_offset=7 position=1 start_offset=0 token="candl" type="<ALPHANUM>">]>
+    #    # => #<Has tokens=[#<Has end_offset=7 position=1 start_offset=0 token="candl" type="<ALPHANUM>">]>
     def analyze(text, analysis_params)
       request(:get, "_analyze") do |req|
         req.body = { text: text }.merge(analysis_params)

@@ -36,22 +36,22 @@ describe Stretcher::IndexDocs do
 
     it "should search and find the right doc" do
       res = docs.search(query: { match: { message: @doc[:message] } })
-      res.results.first.message.should == @doc[:message]
+      expect(res.documents.first.dig('message')).to eql @doc[:message]
     end
 
     it "should build results when _source is not included in loaded fields" do
       res = docs.search(query: { match_all: {} }, stored_fields: ['message'])
-      res.results.first.message.should == [@doc[:message]]
+      res.documents.first['message'].should == [@doc[:message]]
     end
 
     it "should build results when no document fields are selected" do
       res = docs.search(query: { match_all: {} }, stored_fields: ['_id'])
-      res.results.first.should have_key '_id'
+      res.documents.first.should have_key '_id'
     end
 
     it "should add _highlight field to resulting documents when present" do
       res = docs.search(query: { match: { message: 'hello' } }, highlight: { fields: { message: {} } })
-      res.documents.first.message.should == @doc[:message]
+      res.documents.first['message'].should == @doc[:message]
       res.documents.first.should have_key '_highlight'
     end
   end
@@ -66,15 +66,15 @@ describe Stretcher::IndexDocs do
     end
 
     it 'fetches multiple documents by id' do
-      docs.mget([988, 989]).docs.count.should == 2
-      docs.mget([988, 989]).docs.first._source.message.should == 'message one!'
-      docs.mget([988, 989]).docs.last._source.message.should == 'message two!'
+      docs.mget([988, 989])['docs'].count.should == 2
+      docs.mget([988, 989])['docs'].first['_source']['message'].should == 'message one!'
+      docs.mget([988, 989])['docs'].last['_source']['message'].should == 'message two!'
     end
 
     it 'allows options to be passed through' do
       response = docs.mget([988, 989], stored_fields: 'message')
-      response.docs.first.fields.message.should == ['message one!']
-      response.docs.last.fields.message.should == ['message two!']
+      response['docs'].first['fields']['message'].should == ['message one!']
+      response['docs'].last['fields']['message'].should == ['message two!']
     end
   end
 
@@ -87,18 +87,18 @@ describe Stretcher::IndexDocs do
     describe "put" do
       it "should put correctly, with options" do
         res = docs.put(987, @doc, if_seq_no: @put_res['_seq_no'], if_primary_term: @put_res['_primary_term'])
-        res._version.should == @put_res['_version'] + 1
+        res['_version'].should == @put_res['_version'] + 1
       end
 
       it "should post correctly, with options" do
         res = docs.post(@doc, refresh: true)
-        res._version.should == 1
+        res['_version'].should == 1
       end
     end
 
     describe "get" do
       it "should get individual documents correctly" do
-        docs.get(987).message.should == @doc[:message]
+        docs.get(987)['message'].should == @doc[:message]
       end
 
       it "should return nil when retrieving non-extant docs" do
@@ -110,30 +110,30 @@ describe Stretcher::IndexDocs do
 
       it "should get individual fields given a String, passing through additional options" do
         res = docs.get(987, { stored_fields: 'message' })
-        res.message.first.should == @doc[:message]
+        res['message'].first.should == @doc[:message]
       end
 
       it "should get individual fields given an Array, passing through additional options" do
         res = docs.get(987, { stored_fields: ['message'] })
-        res.message.first.should == @doc[:message]
+        res['message'].first.should == @doc[:message]
       end
 
       it "should have source and other fields accessible when raw=true" do
         res = docs.get(987, { stored_fields: ['message', '_source'] }, true)
-        res._source.message == @doc[:message]
-        res.fields.message.first.should == @doc[:message]
+        res['_source']['message'] == @doc[:message]
+        res['fields']['message'].first.should == @doc[:message]
       end
 
       it "should get individual raw documents correctly" do
         res = docs.get(987, {}, true)
         res["_id"].should == "987"
-        res["_source"].message.should == @doc[:message]
+        res["_source"]['message'].should == @doc[:message]
       end
 
       it "should get individual raw documents correctly with legacy API" do
         res = docs.get(987, true)
         res["_id"].should == "987"
-        res["_source"].message.should == @doc[:message]
+        res["_source"]['message'].should == @doc[:message]
       end
     end
 
@@ -147,7 +147,7 @@ describe Stretcher::IndexDocs do
 
       it 'should allow options to be passed through' do
         index.refresh
-        docs.explain(987, { query: { match_all: {} } }, { stored_fields: 'message' }).get.fields.message.should == ['hello!']
+        docs.explain(987, { query: { match_all: {} } }, { stored_fields: 'message' })['get']['fields']['message'].should == ['hello!']
       end
     end
 
@@ -160,12 +160,12 @@ describe Stretcher::IndexDocs do
 
     it "should update individual docs correctly using doc" do
       docs.update(987, doc: { message: 'Updated!' })
-      docs.get(987).message.should == 'Updated!'
+      docs.get(987)['message'].should == 'Updated!'
     end
 
     it "should update individual docs correctly using doc and fields" do
       response = docs.update(987, { doc: { message: 'Updated!' } }, _source_includes: ['message'])
-      response.get._source.message.should == 'Updated!'
+      response['get']['_source']['message'].should == 'Updated!'
     end
 
     it "should delete by query correctly" do

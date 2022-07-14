@@ -15,7 +15,7 @@ module Stretcher
         body = generic_opts
       end
 
-      response = request(:get, "_search", query_opts, nil, {}, mashify: false) do |req|
+      response = request(:get, "_search", query_opts, nil, {}) do |req|
         req.body = body
       end
       SearchResults.new(response)

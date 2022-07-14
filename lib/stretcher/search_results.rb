@@ -1,4 +1,5 @@
 module Stretcher
+
   # Conveniently represents elastic search results in a more compact fashion
   #
   # Available properties:
@@ -8,31 +9,29 @@ module Stretcher
   # * facets : the facets hash
   # * results : The hit results with _id merged in to _source
   class SearchResults
+    extend Gem::Deprecate
+
     def initialize(raw)
-      @raw_plain = raw
+      @_raw = raw
     end
 
     # Returns a plain (string keyed) hash of the raw response
-    # Normally stretcher deals in Hashie::Mash-ified versions of data
-    # If you have truly gigantic result sets this may matter.
-    def raw_plain
-      @raw_plain
+    def raw
+      @_raw
     end
 
-    # Returns a Hashie::Mash version of the raw response
-    def raw
-      @raw ||= Smash.new(@raw_plain)
-    end
+    alias :raw_plain :raw
+    rubygems_deprecate :raw_plain, :raw
 
     # Returns the total number of results
     def total
-      @total ||= raw_plain['hits']['total']
+      @total ||= raw.dig('hits', 'total')
     end
 
     # Returns the facet data from elasticsearch
-    # Equivalent to raw[:facets]
+    # Equivalent to raw['facets']
     def facets
-      @facets ||= raw[:facets]
+      @facets ||= raw['facets']
     end
 
     # Returns a 'prettier' version of elasticsearch results
@@ -45,7 +44,7 @@ module Stretcher
     #
     def documents
       # This function and its helpers are side-effecty for speed
-      @documents ||= raw_plain['hits']['hits'].map do |hit|
+      @documents ||= raw.dig('hits', 'hits').map do |hit|
         doc = extract_source(hit)
         copy_underscores(hit, doc)
         copy_highlight(hit, doc)
@@ -73,7 +72,7 @@ module Stretcher
                      nil
                    end
 
-      Smash.new(@doc_key ? hit[@doc_key] : Smash.new)
+      Hash(@doc_key ? hit[@doc_key] : {})
     end
 
     def copy_underscores(hit, doc)
@@ -87,7 +86,7 @@ module Stretcher
 
     def copy_highlight(hit, doc)
       if highlight = hit['highlight']
-        doc[:_highlight] = highlight
+        doc['_highlight'] = highlight
       end
       doc
     end

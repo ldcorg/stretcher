@@ -7,34 +7,34 @@ describe Stretcher::SearchResults do
   let(:index) { ensure_test_index(server, :foo) }
 
   let(:result) do
-    Stretcher::Smash.new({
-                           'facets' => [],
-                           'hits' => {
-                             'total' => 1,
-                             'hits' => [{
-                                          '_score' => 255,
-                                          '_id' => 2,
-                                          '_index' => 'index_name',
-                                          '_type' => 'type_name',
-                                        }]
-                           }
-                         })
+    {
+      'facets' => [],
+      'hits' => {
+        'total' => 1,
+        'hits' => [{
+                     '_score' => 255,
+                     '_id' => 2,
+                     '_index' => 'index_name',
+                     '_type' => 'type_name',
+                   }]
+      }
+    }
   end
 
   let(:result_with_hightlight) do
-    Stretcher::Smash.new({
-                           'facets' => [],
-                           'hits' => {
-                             'total' => 1,
-                             'hits' => [{
-                                          '_score' => 255,
-                                          '_id' => 2,
-                                          '_index' => 'index_name',
-                                          '_type' => 'type_name',
-                                          'highlight' => { 'message.*' => ["meeting at <hit>protonet</hit>!"] }
-                                        }]
-                           }
-                         })
+    {
+      'facets' => [],
+      'hits' => {
+        'total' => 1,
+        'hits' => [{
+                     '_score' => 255,
+                     '_id' => 2,
+                     '_index' => 'index_name',
+                     '_type' => 'type_name',
+                     'highlight' => { 'message.*' => ["meeting at <hit>protonet</hit>!"] }
+                   }]
+      }
+    }
   end
 
   context 'merges in underscore keys' do
@@ -42,11 +42,11 @@ describe Stretcher::SearchResults do
       Stretcher::SearchResults.new(result).documents.first
     }
 
-    its(:_score) { should == 255 }
-    its(:_id) { should == 2 }
-    its(:_index) { should == 'index_name' }
-    its(:_type) { should == 'type_name' }
-    its(:_highlight) { should be(nil) }
+    its(['_score']) { should == 255 }
+    its(['_id']) { should == 2 }
+    its(['_index']) { should == 'index_name' }
+    its(['_type']) { should == 'type_name' }
+    its(['_highlight']) { should be(nil) }
   end
 
   context 'merges in optional keys' do
@@ -54,8 +54,8 @@ describe Stretcher::SearchResults do
       Stretcher::SearchResults.new(result_with_hightlight).documents.first
     }
 
-    its(:_id) { should == 2 }
-    its(:_highlight) { should == { 'message.*' => ["meeting at <hit>protonet</hit>!"] } }
+    its(['_id']) { should == 2 }
+    its(['_highlight']) { should == { 'message.*' => ["meeting at <hit>protonet</hit>!"] } }
   end
 
   context 'result object types' do
@@ -64,14 +64,10 @@ describe Stretcher::SearchResults do
       index.search(query: { match_all: {} })
     }
 
-    it 'returns a plain hash for raw_plain' do
+    it 'returns a plain hash for raw' do
       sleep 1
-      search_result.raw_plain.should be_instance_of(::Hash)
+      search_result.raw.should be_instance_of(::Hash)
     end
 
-    it 'returns a hashie mash for raw' do
-      sleep 1
-      search_result.raw.should be_instance_of(Stretcher::Smash)
-    end
   end
 end

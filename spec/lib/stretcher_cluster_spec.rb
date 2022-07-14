@@ -8,8 +8,8 @@ describe Stretcher::Cluster do
   describe :health do
 
     it 'should return the health' do
-      cluster.health.should be_a Stretcher::Smash
-      cluster.health.status.should_not be_nil
+      cluster.health.should be_a Hash
+      expect(cluster.health.dig('status')).to_not be nil
     end
 
   end

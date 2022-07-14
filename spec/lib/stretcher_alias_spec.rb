@@ -30,7 +30,7 @@ describe Stretcher::Alias do
 
     it 'should be able to search with filter' do
       resp = my_alias.index_context.search(query: { match_all: {} })
-      resp.results.map(&:message).should == ['visible']
+      resp.documents.map { |d| d['message'] }.should == ['visible']
     end
 
   end

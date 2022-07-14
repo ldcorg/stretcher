@@ -39,11 +39,27 @@ describe Stretcher::Server do
     # guts of faraday
     conf_called = false
     configurator = lambda { |builder|
-      builder.adapter :net_http
+      builder.adapter :test
       conf_called = true
     }
     srv = Stretcher::Server.new(ES_URL, { faraday_configurator: configurator })
     conf_called.should eql true
+  end
+
+  it 'converts JSON response keys to strings' do
+    server = Stretcher::Server.new(ES_URL)
+    res = server.status
+    expect(res.keys.all? { |k| k.is_a?(String) }).to eql true
+
+    server = Stretcher::Server.new(ES_URL, symbolize_keys: false)
+    res = server.status
+    expect(res.keys.all? { |k| k.is_a?(String) }).to eql true
+  end
+
+  it 'converts JSON response keys to symbols' do
+    server = Stretcher::Server.new(ES_URL, symbolize_keys: true)
+    res = server.status
+    expect(res.keys.all? { |k| k.is_a?(Symbol) }).to eql true
   end
 
   it "should properly return that our server is up" do
@@ -61,15 +77,15 @@ describe Stretcher::Server do
 
     server.index(:foo_alias).get_settings.should == server.index(:foo).get_settings
 
-    server.aliases[:foo][:aliases].keys.should include 'foo_alias'
+    expect(server.aliases.dig('foo', 'aliases').keys).to include 'foo_alias'
   end
 
   it "should check the status w/o error" do
-    server.status.indices.should be
+    expect(server.status.dig('indices')).to be
   end
 
   it "should refresh w/o error" do
-    server.refresh._shards.failed.should eql 0
+    expect(server.refresh.dig('_shards', 'failed')).to eql 0
   end
 
   it "should beget an index object cleanly" do
@@ -88,7 +104,7 @@ describe Stretcher::Server do
 
   it "execute the analysis API and return an expected result" do
     analyzed = server.analyze("Candles", analyzer: :snowball)
-    analyzed.tokens.first.token.should == 'candl'
+    expect(analyzed.dig('tokens').first['token']).to eql 'candl'
   end
 
   it 'logs requests correctly' do

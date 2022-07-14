@@ -27,21 +27,20 @@ server.index(:foo).create(mappings: { tweet: { properties: { text: { type: 'text
 30.times { |t| server.index(:foo).docs.put(t, { text: "Hello #{t}" }) }
 # Retrieve a document
 server.index(:foo).docs.get(3)
-# => #<Hashie::Mash text="Hello 3">
+# => #<Hash text="Hello 3">
 # Perform a search (Returns a Stretcher::SearchResults instance)
 res = server.index(:foo).search(size: 12, query: { match_all: {} })
 res.class # Stretcher::SearchResults
 res.total # => 30
-res.documents # => [#<Hashie::Mash _id="4" text="Hello 4">, ...]
+res.documents # => [#<Hash _id="4" text="Hello 4">, ...]
 res.facets # => nil
-res.raw # => #<Hashie::Mash ...> Raw JSON from the search
-res.raw_plain # => #<Hash ...> Non-Hashie Raw JSON from the search (fastest)
+res.raw # => #<Hash ...> Raw JSON from the search
 # use an alias
 alias = server.index(:foo).alias(:my_alias)
 alias.create({ filter: { term: { user_id: 1 } } })
 alias.index_context.search({ query: { match_all: {} } })
 # or get some cluster health information
-server.cluster.health # Hashie::Mash
+server.cluster.health # Hash
 ```
 
 ### Block Syntax
@@ -54,7 +53,7 @@ Stretcher::Server.with_server('http://localhost:9200') { |srv|
     idx.docs { |t| { exists: t.exists?('123'), mapping: idx.get_mapping } }
   }
 }
-# => {:exists=>true, :mapping=>#<Hashie::Mash tweet=...>}
+# => {:exists=>true, :mapping=>#<Hash tweet=...>}
 ```
 
 ### Multi Search

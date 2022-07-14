@@ -21,7 +21,7 @@ describe Stretcher::Server do
 
       server.index(:foots_alias).get_settings.should == server.index(:foots).get_settings
 
-      server.aliases[:foots][:aliases].keys.should include 'foots_alias'
+      server.aliases['foots']['aliases'].keys.should include 'foots_alias'
     }
     t2 = Thread.new {
       server.index(:foots2).delete if server.index(:foots2).exists?
@@ -30,7 +30,7 @@ describe Stretcher::Server do
 
       server.index(:foots_alias2).get_settings.should == server.index(:foots2).get_settings
 
-      server.aliases[:foots2][:aliases].keys.should include 'foots_alias2'
+      server.aliases['foots2']['aliases'].keys.should include 'foots_alias2'
     }
     # Check the thread have not finished; they should both be running or sleeping. Any other value
     # indicates an unexpected result
@@ -42,11 +42,11 @@ describe Stretcher::Server do
   end
 
   it "should check the status w/o error" do
-    server.status.indices.should be
+    server.status['indices'].should be
   end
 
   it "should refresh w/o error" do
-    server.refresh._shards.failed.should eql 0
+    server.refresh['_shards']['failed'].should eql 0
   end
 
   it "should perform unthreaded alias operations properly" do
@@ -57,7 +57,7 @@ describe Stretcher::Server do
 
     server.index(:foots_alias).get_settings.should == server.index(:foots).get_settings
 
-    server.aliases[:foots][:aliases].keys.should include 'foots_alias'
+    server.aliases['foots']['aliases'].keys.should include 'foots_alias'
 
     server.index(:foots2).delete if server.index(:foots2).exists?
     server.index(:foots2).create
@@ -65,16 +65,16 @@ describe Stretcher::Server do
 
     server.index(:foots_alias2).get_settings.should == server.index(:foots2).get_settings
 
-    server.aliases[:foots2][:aliases].keys.should include 'foots_alias2'
+    server.aliases['foots2']['aliases'].keys.should include 'foots_alias2'
 
   end
 
   it "should check the status w/o error" do
-    server.status.indices.should be
+    server.status['indices'].should be
   end
 
   it "should refresh w/o error" do
-    server.refresh._shards.failed.should eql 0
+    server.refresh['_shards']['failed'].should eql 0
   end
 
 end

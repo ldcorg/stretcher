@@ -44,8 +44,8 @@ def ensure_test_index(server, name, mappings = nil)
 
   # Sometimes the index isn't instantly available
   loop do
-    idx_metadata = server.cluster.state[:metadata][:indices][i.name]
-    i_state = idx_metadata[:state]
+    idx_metadata = server.cluster.state.dig('metadata', 'indices', i.name.to_s)
+    i_state = idx_metadata['state']
 
     break if i_state == 'open'
 

@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'faraday/net_http'
 
 describe Stretcher::Index do
   let(:server) {
@@ -90,7 +89,7 @@ describe Stretcher::Index do
 
   it 'should be able to get mapping' do
     index.get_mapping.should_not be_nil
-    index.get_mapping.foo.should_not be_nil
+    index.get_mapping['foo'].should_not be_nil
   end
 
   it "should retrieve settings properly" do
@@ -103,10 +102,10 @@ describe Stretcher::Index do
       seed_corpus
       corpus.each { |doc|
         fetched_doc = index.docs.get(doc["_id"] || doc["id"], {}, true)
-        fetched_doc._source.text.should == doc['text']
-        fetched_doc._source._text.should == doc['_text']
-        fetched_doc._source._id.should be_nil
-        fetched_doc._source._type.should be_nil
+        fetched_doc['_source']['text'].should == doc['text']
+        fetched_doc['_source']['_text'].should == doc['_text']
+        fetched_doc['_source']['_id'].should be_nil
+        fetched_doc['_source']['_type'].should be_nil
       }
     end
 
@@ -174,7 +173,7 @@ describe Stretcher::Index do
     match_text = corpus.first['text']
     index.refresh
     res = index.search({}, { query: { match: { text: match_text } } })
-    res.results.first.text.should == match_text
+    res.results.first['text'].should == match_text
   end
 
   # TODO: Actually use two indexes
@@ -213,7 +212,7 @@ describe Stretcher::Index do
 
   it "execute the analysis API and return an expected result" do
     analyzed = server.index(:foo).analyze("Candles", analyzer: :snowball)
-    analyzed.tokens.first.token.should == 'candl'
+    analyzed['tokens'].first['token'].should == 'candl'
   end
 
   it "should raise an exception when msearching a non-existant index" do
@@ -240,7 +239,7 @@ describe Stretcher::Index do
       end
 
       it "successfully runs the forcemerge command for the index" do
-        expect(index.forcemerge[:_shards][:failed]).to eql(0)
+        expect(index.forcemerge['_shards']['failed']).to eql(0)
       end
     end
 
@@ -251,7 +250,7 @@ describe Stretcher::Index do
       end
 
       it "successfully runs the forcemerge command for the index with the options passed" do
-        expect(index.forcemerge("max_num_segments" => 1)[:_shards][:failed]).to eql(0)
+        expect(index.forcemerge("max_num_segments" => 1)['_shards']['failed']).to eql(0)
       end
     end
 
