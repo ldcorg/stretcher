@@ -48,23 +48,26 @@ module Stretcher
       bulk_action(:delete, documents, options)
     end
 
+    @@bulk_action_system_fields = [:_id, :_index, :_type, :_parent, :_routing].freeze
+
     def bulk_action(action, documents, options = {})
       action = action.to_sym
 
       body = documents.reduce("") { |post_data, d_raw|
-        d = Smash.new(d_raw)
+        d = deep_transform_keys(d_raw)
         index_meta = {
           _id: (d[:id] || d.delete(:_id)),
           _index: (d[:index] || d.delete(:_index))
         }
 
-        system_fields = %w{_type _parent _routing}
-        d.keys.reduce(index_meta) do |memo, key|
-          index_meta[key] = d.delete(key) if system_fields.include?(key.to_s)
+        d.keys.reduce(index_meta) do |_, key|
+          if @@bulk_action_system_fields.include?(key)
+            index_meta[key] = d.delete(key)
+          end
         end
 
-        post_data << (MultiJson.dump({action => index_meta}) << "\n")
-        post_data << (MultiJson.dump(d) << "\n") unless action == :delete
+        post_data << (Oj.dump({ action => index_meta }) << "\n")
+        post_data << (Oj.dump(d) << "\n") unless action == :delete
         post_data
       }
       bulk body, options
@@ -83,8 +86,8 @@ module Stretcher
     # Takes a collection of hashes of the form {:_index => 'foo', :_id => 123}
     # And issues an mget for them within the current index
     def mget(meta_docs)
-      merge_data = {_index: name}
-      @server.mget(meta_docs.map { |d| d.transform_keys(&:to_sym).merge(merge_data) })
+      merge_data = { _index: name }
+      @server.mget(meta_docs.map { |d| deep_transform_keys(d).merge(merge_data) })
     end
 
     # Retrieves stats for this index
@@ -136,8 +139,8 @@ module Stretcher
     #    es.class   # Stretcher::SearchResults
     #    res.total   # => 1
     #    res.facets  # => nil
-    #    res.results # => [#<Hashie::Mash _id="123" text="Hello">]
-    #    res.raw     # => #<Hashie::Mash ...> Raw JSON from the search
+    #    res.results # => [#<Hash _id="123" text="Hello">]
+    #    res.raw     # => #<Hash ...> Raw JSON from the search
     def search(generic_opts = {}, explicit_body = nil)
       # Written this way to be more RDoc friendly
       do_search(generic_opts, explicit_body)
@@ -153,7 +156,7 @@ module Stretcher
     def msearch(queries = [])
       raise ArgumentError, "msearch takes an array!" unless queries.is_a?(Array)
       req_body = queries.reduce([]) { |acc, q|
-        acc << {index: name}
+        acc << { index: name }
         acc << q
         acc
       }
@@ -163,10 +166,10 @@ module Stretcher
     # Implements the Analyze API
     # EX:
     #    index.analyze("Candles", analyzer: :snowball)
-    #    # => #<Hashie::Mash tokens=[#<Hashie::Mash end_offset=7 position=1 start_offset=0 token="candl" type="<ALPHANUM>">]>
+    #    # => #<Has tokens=[#<Has end_offset=7 position=1 start_offset=0 token="candl" type="<ALPHANUM>">]>
     def analyze(text, analysis_params)
       request(:get, "_analyze") do |req|
-        req.body = {text: text}.merge(analysis_params)
+        req.body = { text: text }.merge(analysis_params)
       end
     end
 
@@ -190,7 +193,7 @@ module Stretcher
     # suggest("band_complete", "a", field: :suggest)
     # Use the new completion suggest API per http://www.elasticsearch.org/guide/reference/api/search/completion-suggest/
     def suggest(name, text, completion = {})
-      request(:post, "_suggest", nil, {name => {text: text, completion: completion}})
+      request(:post, "_suggest", nil, { name => { text: text, completion: completion } })
     end
 
     # Full path to this index

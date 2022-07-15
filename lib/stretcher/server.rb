@@ -6,9 +6,8 @@ module Stretcher
     # Returns a properly configured HTTP client when initializing an instance
     def self.build_client(uri_components, options = {})
       http = Faraday.new(url: uri_components) do |builder|
-        builder.response :json, content_type: /\bjson$/
-
-        builder.request :json
+        builder.response :oj, symbolize_keys: options[:symbolize_keys] == true
+        builder.request :oj
 
         builder.options[:timeout] = options[:read_timeout] || 30
         builder.options[:open_timeout] = options[:open_timeout] || 2
@@ -63,7 +62,7 @@ module Stretcher
     #
     #    server = Stretcher::Server.new('http://localhost:9200')
     #
-    # The default implementation here uses the net_http_persistent adapter
+    # The default implementation here uses the excon adapter
     # for faraday. If you would like to use a different HTTP library, or alter
     # other faraday config settings you may specify an optional :faraday_configurator
     # argument, with a Proc as a value. This will be called once with the faraday builder.
@@ -141,16 +140,17 @@ module Stretcher
     #    server.msearch(data)
     def msearch(body = [])
       raise ArgumentError, "msearch takes an array!" unless body.is_a?(Array)
-      fmt_body = body.map { |l| MultiJson.dump(l) }.join("\n") << "\n"
+      fmt_body = body.map { |l| Oj.dump(l) }.join("\n") << "\n"
 
-      res = request(:get, path_uri("/_msearch"), {}, fmt_body, {}, mashify: false)
+      res = request(:get, path_uri("/_msearch"), {}, fmt_body, {})
+      responses = indig(res, 'responses')
 
-      errors = res['responses'].map { |response| response['error'] }.compact
+      errors = responses.map { |response| indig(response, 'error') }.compact
       unless errors.empty?
         raise RequestError.new(res), "Could not msearch #{errors.inspect}"
       end
 
-      res['responses'].map { |r| SearchResults.new(r) }
+      responses.map { |r| SearchResults.new(r) }
     end
 
     # Retrieves multiple documents, possibly from multiple indexes
@@ -162,13 +162,14 @@ module Stretcher
       #Legacy API
       return legacy_mget(docs) if docs.is_a?(Hash)
 
-      opts = {exists: true}.merge(arg_opts)
+      opts = { exists: true }.merge(arg_opts)
 
-      res = request(:get, path_uri("/_mget"), {}, {docs: docs})[:docs]
+      res = request(:get, path_uri("/_mget"), {}, { docs: docs })
+      docs = indig(res, 'docs')
       if opts.has_key?(:exists) || opts.has_key?(:found)
-        res.select { |d| d[:found] == true }
+        docs.select { |d| indig(d, 'found') == true }
       else
-        res
+        docs
       end
     end
 
@@ -180,11 +181,11 @@ module Stretcher
     # Implements the Analyze API
     # Ex:
     #    server.analyze("Candles", analyzer: :snowball)
-    #    # => #<Hashie::Mash tokens=[#<Hashie::Mash end_offset=7 position=1 start_offset=0 token="candl" type="<ALPHANUM>">]>
+    #    # => #<Has tokens=[#<Has end_offset=7 position=1 start_offset=0 token="candl" type="<ALPHANUM>">]>
     # as per: http://www.elasticsearch.org/guide/reference/api/admin-indices-analyze.html
     def analyze(text, analysis_params)
       request(:get, path_uri("/_analyze")) do |req|
-        req.body = {text: text}.merge(analysis_params)
+        req.body = { text: text }.merge(analysis_params)
       end
     end
 
@@ -217,7 +218,6 @@ module Stretcher
     # Handy way to query the server, returning *only* the body
     # Will raise an exception when the status is not in the 2xx range
     def request(method, path, params = {}, body = nil, headers = {}, options = {}, &block)
-      options = {mashify: true}.merge(options)
       req = http.build_request(method)
       req.path = path
       req.params.update(Util.clean_params(params)) if params
@@ -241,16 +241,11 @@ module Stretcher
 
     private
 
-
     # Internal use only
     # Check response codes from request
     def check_response(res, options)
       if res.status >= 200 && res.status <= 299
-        if (options[:mashify] && res.body.instance_of?(Hash))
-          Smash.new(res.body)
-        else
-          res.body
-        end
+        res.body
       elsif [404, 410].include? res.status
         err_str = "Error processing request: (#{res.status})! #{res.env[:method]} URL: #{res.env[:url]}"
         err_str << "\n Resp Body: #{res.body}"
