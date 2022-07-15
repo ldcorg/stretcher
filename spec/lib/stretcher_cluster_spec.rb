@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Stretcher::Cluster do
 
-  RSpec.shared_examples 'an alias' do
+  RSpec.shared_examples 'a cluster' do
     let(:cluster) { server.cluster }
 
     describe :health do
@@ -17,13 +17,13 @@ describe Stretcher::Cluster do
   end
 
   describe 'string keys' do
-    it_behaves_like 'an alias' do
+    it_behaves_like 'a cluster' do
       let(:server) { Stretcher::Server.new(ES_URL, logger: DEBUG_LOGGER, symbolize_keys: false) }
     end
   end
 
   describe 'symbol keys' do
-    it_behaves_like 'an alias' do
+    it_behaves_like 'a cluster' do
       let(:server) { Stretcher::Server.new(ES_URL, logger: DEBUG_LOGGER, symbolize_keys: true) }
     end
   end

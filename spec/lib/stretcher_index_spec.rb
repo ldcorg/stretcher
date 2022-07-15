@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Stretcher::Index do
-  RSpec.shared_examples 'indexes' do
+  RSpec.shared_examples 'an index' do
     let(:index) { ensure_test_index(server, :foo, mappings) }
     let(:mappings) do
       {
@@ -260,13 +260,13 @@ describe Stretcher::Index do
   end
 
   describe 'string keys' do
-    it_behaves_like 'indexes' do
+    it_behaves_like 'an index' do
       let(:server) { Stretcher::Server.new(ES_URL, logger: DEBUG_LOGGER, symbolize_keys: false) }
     end
   end
 
   describe 'symbol keys' do
-    it_behaves_like 'indexes' do
+    it_behaves_like 'an index' do
       let(:server) { Stretcher::Server.new(ES_URL, logger: DEBUG_LOGGER, symbolize_keys: true) }
     end
   end

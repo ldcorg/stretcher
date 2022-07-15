@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Stretcher::SearchResults do
 
-  RSpec.shared_examples 'searching' do
+  RSpec.shared_examples 'a search' do
     let(:index) { ensure_test_index(server, :foo) }
 
     let(:result) do
@@ -73,13 +73,13 @@ describe Stretcher::SearchResults do
   end
 
   describe 'string keys' do
-    it_behaves_like 'searching' do
+    it_behaves_like 'a search' do
       let(:server) { Stretcher::Server.new(ES_URL, logger: DEBUG_LOGGER, symbolize_keys: false) }
     end
   end
 
   describe 'symbol keys' do
-    it_behaves_like 'searching' do
+    it_behaves_like 'a search' do
       let(:server) { Stretcher::Server.new(ES_URL, logger: DEBUG_LOGGER, symbolize_keys: true) }
     end
   end
