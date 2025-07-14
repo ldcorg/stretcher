@@ -18,8 +18,9 @@ Gem::Specification.new do |gem|
   gem.test_files = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
 
-  gem.add_dependency('faraday', '>=1.10.0', '<2')
-  gem.add_dependency('excon')
+  gem.add_dependency 'faraday', '>= 2.11.0', '< 3'
+  gem.add_dependency('excon', '>= 0.109.0')
+  gem.add_dependency('faraday-excon', '>= 2.2.0')
   gem.add_dependency('oj', '>=3.0')
 
   gem.add_development_dependency 'rspec', '>= 3.9'

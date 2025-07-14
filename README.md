@@ -2,7 +2,7 @@
 
 A concise, fast ElasticSearch Ruby client designed to reflect the actual elastic search API as closely as possible.
 
-Tested against: Elasticsearch 7.17.4, Ruby 3.1.0
+Tested against: Elasticsearch 8.18.3, Ruby 3.1.0
 
 ## Installation
 

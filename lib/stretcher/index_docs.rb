@@ -31,12 +31,12 @@ module Stretcher
     # Retrieves multiple documents of the index type by ID
     # http://www.elasticsearch.org/guide/reference/api/multi-get/
     def mget(ids, params = {})
-      request(:get, '_doc/_mget', params, ids: ids)
+      request(:get, '_mget', params, ids: ids)
     end
 
     # Explains a query for a specific document
     def explain(id, query, params = {})
-      request(:get, "_doc/#{id}/_explain", params, query)
+      request(:get, "_explain/#{id}", params, query)
     end
 
     # Index an item with a specific ID
