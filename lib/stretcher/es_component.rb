@@ -1,3 +1,5 @@
+require 'faraday/excon'
+
 module Stretcher
   # Elasticsearch has symmetry across API endpoints for Server, Index, and Type, lets try and provide some common ground
   class EsComponent
